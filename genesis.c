@@ -424,10 +424,20 @@ int main(int argc, char *argv[])
 			
 			if(check == 0) // \x00\x00\x00\x00
 			{
-				byteswap(block_hash2, 32);
-				char *blockHash = bin2hex(block_hash2, 32);
+				char *blockHash;
+
+				if (!strcmp(algo, "spark")==0) {
+					byteswap(block_hash5, 32);
+					blockHash = bin2hex(block_hash5, 32);
+				}
+				else {
+					byteswap(block_hash2, 32);
+					blockHash = bin2hex(block_hash2, 32);
+				}
+				
 				printf("\nBlock found!\nHash: %s\nNonce: %u\nUnix time: %u\n\n", blockHash, startNonce, unixtime);
 				free(blockHash);
+				
 				break;
 			}
 
