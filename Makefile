@@ -1,5 +1,5 @@
 all:
-	gcc -std=c11 -Wall -O2 -o genesis *.c -lcrypto
+	gcc -Wall -O2 -o genesis *.c -lcrypto
 
 .PHONY: clean
 clean:

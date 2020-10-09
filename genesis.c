@@ -16,8 +16,6 @@
 #include "sph_bmw.h"
 #include "sph_cubehash.h"
 #include "sph_groestl.h"
-#include "sph_luffa.h"
-#include "sph_shavite.h"
 
 //Copied from Bitcoin source
 static const uint64_t COIN = 100000000;
@@ -349,8 +347,6 @@ int main(int argc, char *argv[])
 		sph_bmw256_context ctx_bmw;
 		sph_cubehash256_context ctx_cubehash;
 		sph_groestl256_context ctx_groestl;
-		sph_luffa256_context ctx_luffa;
-		sph_shavite256_context ctx_shavite;
 		
 		while(1)
 		{
@@ -392,16 +388,6 @@ int main(int argc, char *argv[])
 				sph_groestl256_init(&ctx_groestl);
 				sph_groestl256 (&ctx_groestl, block_header, 80);
 				sph_groestl256_close(&ctx_groestl, block_hash2);
-			}
-			else if (strcmp(algo, "luffa")==0) {
-				sph_luffa256_init(&ctx_luffa);
-				sph_luffa256 (&ctx_luffa, block_header, 80);
-				sph_luffa256_close(&ctx_luffa, block_hash2);
-			}
-			else if (strcmp(algo, "shavite")==0) {
-				sph_shavite256_init(&ctx_shavite);
-				sph_shavite256 (&ctx_shavite, block_header, 80);
-				sph_shavite256_close(&ctx_shavite, block_hash2);
 			}
 			else {
 				fprintf(stderr, "Invalid algorithm: %s\n", algo);
