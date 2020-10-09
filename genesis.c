@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 
 	//if(generateBlock)
 	{
-		printf("Generating block using algorithm %s...\n", algo);
+		printf("\nGenerating block using algorithm %s...\n", algo);
 		if(!unixtime)
 		{
 			unixtime = time(NULL);
