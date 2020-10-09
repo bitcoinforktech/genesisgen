@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
 	strncpy(pubkey, argv[2], sizeof(pubkey));
 	strncpy(timestamp, argv[3], sizeof(timestamp));
 	sscanf(argv[4], "%lu", (long unsigned int *)&nBits);
+
 	char *endptr = NULL;
 	if (argc > 5)
 	{
@@ -353,51 +354,51 @@ int main(int argc, char *argv[])
 		
 		while(1)
 		{
-			if (!strcmp("algo", "sha256d")) {
+			if (strcmp(algo, "sha256d")==0) {
 				SHA256(block_header, 80, block_hash1);
 				SHA256(block_hash1, 32, block_hash2);
 			}
-			else if (!strcmp("algo", "blake")) {
+			else if (strcmp(algo, "blake")==0) {
 				sph_blake256_init(&ctx_blake);
 				sph_blake256 (&ctx_blake, block_header, 80);
 				sph_blake256_close(&ctx_blake, block_hash2);
 			}
-			else if (!strcmp("algo", "keccak")) {
+			else if (strcmp(algo, "keccak")==0) {
 				sph_keccak256_init(&ctx_keccak);
 				sph_keccak256 (&ctx_keccak, block_header, 80);
 				sph_keccak256_close(&ctx_keccak, block_hash2);
 			}
-			else if (!strcmp("algo", "skein")) {
+			else if (strcmp(algo, "skein")==0) {
 				sph_skein256_init(&ctx_skein);
 				sph_skein256 (&ctx_skein, block_header, 80);
 				sph_skein256_close(&ctx_skein, block_hash2);
 			}
-			else if (!strcmp("algo", "fugue")) {
+			else if (strcmp(algo, "fugue")==0) {
 				sph_fugue256_init(&ctx_fugue);
 				sph_fugue256 (&ctx_fugue, block_header, 80);
 				sph_fugue256_close(&ctx_fugue, block_hash2);
 			}
-			else if (!strcmp("algo", "bmw")) {
+			else if (strcmp(algo, "bmw")==0) {
 				sph_bmw256_init(&ctx_bmw);
 				sph_bmw256 (&ctx_bmw, block_header, 80);
 				sph_bmw256_close(&ctx_bmw, block_hash2);
 			}
-			else if (!strcmp("algo", "cubehash")) {
+			else if (strcmp(algo, "cubehash")==0) {
 				sph_cubehash256_init(&ctx_cubehash);
 				sph_cubehash256 (&ctx_cubehash, block_header, 80);
 				sph_cubehash256_close(&ctx_cubehash, block_hash2);
 			}
-			else if (!strcmp("algo", "groestl")) {
+			else if (strcmp(algo, "groestl")==0) {
 				sph_groestl256_init(&ctx_groestl);
 				sph_groestl256 (&ctx_groestl, block_header, 80);
 				sph_groestl256_close(&ctx_groestl, block_hash2);
 			}
-			else if (!strcmp("algo", "luffa")) {
+			else if (strcmp(algo, "luffa")==0) {
 				sph_luffa256_init(&ctx_luffa);
 				sph_luffa256 (&ctx_luffa, block_header, 80);
 				sph_luffa256_close(&ctx_luffa, block_hash2);
 			}
-			else if (!strcmp("algo", "shavite")) {
+			else if (strcmp(algo, "shavite")==0) {
 				sph_shavite256_init(&ctx_shavite);
 				sph_shavite256 (&ctx_shavite, block_header, 80);
 				sph_shavite256_close(&ctx_shavite, block_hash2);
