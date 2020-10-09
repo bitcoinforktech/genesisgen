@@ -9,6 +9,16 @@
 #include <time.h>
 #include <openssl/sha.h>
 
+#include "sph_blake.h"
+#include "sph_keccak.h"
+#include "sph_skein.h"
+#include "sph_fugue.h"
+#include "sph_bmw.h"
+#include "sph_cubehash.h"
+#include "sph_groestl.h"
+#include "sph_luffa.h"
+#include "sph_shavite.h"
+
 //Copied from Bitcoin source
 static const uint64_t COIN = 100000000;
 
@@ -103,7 +113,7 @@ size_t hex2bin(unsigned char *p, const char *hexstr, size_t len)
 	return ret;
 }
 
-Transaction *InitTransaction()
+Transaction *InitTransaction(const uint64_t block_reward)
 {
 	Transaction *transaction;
 
@@ -120,7 +130,7 @@ Transaction *InitTransaction()
 	transaction->locktime = 0;
 	transaction->prevoutIndex = 0xFFFFFFFF;
 	transaction->sequence = 0xFFFFFFFF;
-	transaction->outValue = 50*COIN;
+	transaction->outValue = block_reward;
 
 	// We initialize the previous output to 0 as there is none
 	memset(transaction->prevOutput, 0, 32);
@@ -132,24 +142,24 @@ int main(int argc, char *argv[])
 {
 	Transaction *transaction;
 	unsigned char hash1[32], hash2[32];
-	char timestamp[255], pubkey[132];
+	char timestamp[255], pubkey[132], algo[128];
 	uint32_t timestamp_len = 0, scriptSig_len = 0, pubkey_len = 0, pubkeyScript_len = 0;
 	uint32_t nBits = 0;
 	uint32_t startNonce = 0;
 	uint32_t unixtime = 0;
 
-	if((argc-1) < 3)
+	if((argc-1) < 4)
 	{
 		fprintf(stderr, "Usage: %s [options] <pubkey> \"<timestamp>\" <nBits> <startNonce> <unixtime>\n", argv[0]);
 		return 0;		
 	}
 
-	pubkey_len = strlen(argv[1]) / 2; // One byte is represented as two hex characters, thus we divide by two to get real length.
-	timestamp_len = strlen(argv[2]);
+	pubkey_len = strlen(argv[2]) / 2; // One byte is represented as two hex characters, thus we divide by two to get real length.
+	timestamp_len = strlen(argv[3]);
 
 	if(pubkey_len != 65)
 	{
-		fprintf(stderr, "Invalid public key length! %s\n", argv[1]);
+		fprintf(stderr, "Invalid public key length! %s\n", argv[2]);
 		return 1;
 	}
 
@@ -164,32 +174,33 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	transaction = InitTransaction();
+	transaction = InitTransaction(50 * COIN);
 	if(!transaction)
 	{
 		fprintf(stderr, "Could not allocate memory! Exiting...\n");
 		return 2;	
 	}
 
-	strncpy(pubkey, argv[1], sizeof(pubkey));
-	strncpy(timestamp, argv[2], sizeof(timestamp));
-	sscanf(argv[3], "%lu", (long unsigned int *)&nBits);
+	strncpy(algo, argv[1], sizeof(algo));
+	strncpy(pubkey, argv[2], sizeof(pubkey));
+	strncpy(timestamp, argv[3], sizeof(timestamp));
+	sscanf(argv[4], "%lu", (long unsigned int *)&nBits);
 	char *endptr = NULL;
-	if (argc > 4)
+	if (argc > 5)
 	{
-		startNonce = strtoul(argv[4], &endptr, 0);
+		startNonce = strtoul(argv[5], &endptr, 0);
 		if (!endptr)
 		{
-			fprintf(stderr, "Invalid start nonce: %s\n", argv[4]);
+			fprintf(stderr, "Invalid start nonce: %s\n", argv[5]);
 			return 1;
 		}
 	}
-	if (argc > 5)
+	if (argc > 6)
 	{
-		unixtime = strtoul(argv[5], &endptr, 0);
+		unixtime = strtoul(argv[6], &endptr, 0);
 		if (!endptr)
 		{
-			fprintf(stderr, "Invalid unix time: %s\n", argv[5]);
+			fprintf(stderr, "Invalid unix time: %s\n", argv[6]);
 			return 1;
 		}
 	}
@@ -329,17 +340,79 @@ int main(int argc, char *argv[])
 		uint32_t *pNonce = (uint32_t *)(block_header + 76);
 		uint32_t *pUnixtime = (uint32_t *)(block_header + 68);
 		unsigned int counter, start = time(NULL);
+
+		sph_blake256_context ctx_blake;
+		sph_keccak256_context ctx_keccak;
+		sph_skein256_context ctx_skein;
+		sph_fugue256_context ctx_fugue;
+		sph_bmw256_context ctx_bmw;
+		sph_cubehash256_context ctx_cubehash;
+		sph_groestl256_context ctx_groestl;
+		sph_luffa256_context ctx_luffa;
+		sph_shavite256_context ctx_shavite;
+		
 		while(1)
 		{
-			SHA256(block_header, 80, block_hash1);
-			SHA256(block_hash1, 32, block_hash2);
+			if (!strcmp("algo", "sha256d")) {
+				SHA256(block_header, 80, block_hash1);
+				SHA256(block_hash1, 32, block_hash2);
+			}
+			else if (!strcmp("algo", "blake")) {
+				sph_blake256_init(&ctx_blake);
+				sph_blake256 (&ctx_blake, block_header, 80);
+				sph_blake256_close(&ctx_blake, block_hash2);
+			}
+			else if (!strcmp("algo", "keccak")) {
+				sph_keccak256_init(&ctx_keccak);
+				sph_keccak256 (&ctx_keccak, block_header, 80);
+				sph_keccak256_close(&ctx_keccak, block_hash2);
+			}
+			else if (!strcmp("algo", "skein")) {
+				sph_skein256_init(&ctx_skein);
+				sph_skein256 (&ctx_skein, block_header, 80);
+				sph_skein256_close(&ctx_skein, block_hash2);
+			}
+			else if (!strcmp("algo", "fugue")) {
+				sph_fugue256_init(&ctx_fugue);
+				sph_fugue256 (&ctx_fugue, block_header, 80);
+				sph_fugue256_close(&ctx_fugue, block_hash2);
+			}
+			else if (!strcmp("algo", "bmw")) {
+				sph_bmw256_init(&ctx_bmw);
+				sph_bmw256 (&ctx_bmw, block_header, 80);
+				sph_bmw256_close(&ctx_bmw, block_hash2);
+			}
+			else if (!strcmp("algo", "cubehash")) {
+				sph_cubehash256_init(&ctx_cubehash);
+				sph_cubehash256 (&ctx_cubehash, block_header, 80);
+				sph_cubehash256_close(&ctx_cubehash, block_hash2);
+			}
+			else if (!strcmp("algo", "groestl")) {
+				sph_groestl256_init(&ctx_groestl);
+				sph_groestl256 (&ctx_groestl, block_header, 80);
+				sph_groestl256_close(&ctx_groestl, block_hash2);
+			}
+			else if (!strcmp("algo", "luffa")) {
+				sph_luffa256_init(&ctx_luffa);
+				sph_luffa256 (&ctx_luffa, block_header, 80);
+				sph_luffa256_close(&ctx_luffa, block_hash2);
+			}
+			else if (!strcmp("algo", "shavite")) {
+				sph_shavite256_init(&ctx_shavite);
+				sph_shavite256 (&ctx_shavite, block_header, 80);
+				sph_shavite256_close(&ctx_shavite, block_hash2);
+			}
+			else {
+				fprintf(stderr, "Invalid algorithm: %s\n", algo);
+				return 1;
+			}
 
 			unsigned int check = *((uint32_t *)(block_hash2 + 28)); // The hash is in little-endian, so we check the last 4 bytes.
 			if(check == 0) // \x00\x00\x00\x00
 			{
 				byteswap(block_hash2, 32);
 				char *blockHash = bin2hex(block_hash2, 32);
-				printf("\nBlock found!\nHash: %s\nNonce: %u\nUnix time: %u", blockHash, startNonce, unixtime);
+				printf("\nBlock found!\nHash: %s\nNonce: %u\nUnix time: %u\n\n", blockHash, startNonce, unixtime);
 				free(blockHash);
 				break;
 			}
