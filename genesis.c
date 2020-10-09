@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
 	if((argc-1) < 4)
 	{
-		fprintf(stderr, "Usage: %s [options] <pubkey> \"<timestamp>\" <nBits> <startNonce> <unixtime>\n", argv[0]);
+		fprintf(stderr, "Usage: %s [options] <algo> <pubkey> \"<timestamp>\" <nBits> <startNonce> <unixtime>\n", argv[0]);
 		return 0;		
 	}
 
