@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
 			unixtime = time(NULL);
 		}
 
-		unsigned char block_header[80], block_hash1[32], block_hash2[32];
+		unsigned char block_header[80], block_hash1[32], block_hash2[32], block_hash3[32], block_hash4[32], block_hash5[32];
 		uint32_t blockversion = 1;
 		memcpy(block_header, &blockversion, 4);
 		memset(block_header+4, 0, 32);
@@ -389,12 +389,39 @@ int main(int argc, char *argv[])
 				sph_groestl256 (&ctx_groestl, block_header, 80);
 				sph_groestl256_close(&ctx_groestl, block_hash2);
 			}
+			else if (strcmp(algo, "spark")==0) {
+				
+				sph_blake256_init(&ctx_blake);
+				sph_blake256 (&ctx_blake, block_header, 80);
+				sph_blake256_close(&ctx_blake, block_hash1);
+
+				sph_keccak256_init(&ctx_keccak);
+				sph_keccak256 (&ctx_keccak, block_hash1, 32);
+				sph_keccak256_close(&ctx_keccak, block_hash2);
+
+				sph_skein256_init(&ctx_skein);
+				sph_skein256 (&ctx_skein, block_hash2, 32);
+				sph_skein256_close(&ctx_skein, block_hash3);
+
+				sph_groestl256_init(&ctx_groestl);
+				sph_groestl256 (&ctx_groestl, block_hash3, 32);
+				sph_groestl256_close(&ctx_groestl, block_hash4);
+
+				sph_bmw256_init(&ctx_bmw);
+				sph_bmw256 (&ctx_bmw, block_hash4, 32);
+				sph_bmw256_close(&ctx_bmw, block_hash5);
+			}
 			else {
 				fprintf(stderr, "Invalid algorithm: %s\n", algo);
 				return 1;
 			}
-
-			unsigned int check = *((uint32_t *)(block_hash2 + 28)); // The hash is in little-endian, so we check the last 4 bytes.
+			
+			uint32_t check;
+			if (!strcmp(algo, "spark")==0)
+				check = *((uint32_t *)(block_hash5 + 28));
+			else
+				check = *((uint32_t *)(block_hash2 + 28)); // The hash is in little-endian, so we check the last 4 bytes.
+			
 			if(check == 0) // \x00\x00\x00\x00
 			{
 				byteswap(block_hash2, 32);
